@@ -7,27 +7,23 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <linux/input.h>
-#include <alsa/asoundlib.h>
-#include <map>
+//#include <alsa/asoundlib.h>
+#include "multi_touch.h"
 
 static char *port_name = "default";
 
-struct tsPosition
-{
-	uint16_t x;
-	uint16_t y;
-	bool justAdded;
-	bool remove;
-};
-
 int main(int argc, char* argv[])
 {
+
+	MultiTouch mt;
+	mt.openDevice(argv[1]);
+	while(1)
+		mt.checkDevice();
+#if 0
 	int fd = open(argv[1], O_RDONLY);	
 	if(fd == -1)
 		return -1;
 
-#if 0
 	fd_set fs;
 	uint t = 0;
 	while(true)
@@ -50,6 +46,7 @@ int main(int argc, char* argv[])
 	} state = STATE_UNKNOWN;
 #endif
 
+#if 0
 	int err;
 	snd_rawmidi_t *output, **outputp;
 	outputp = &output;
@@ -193,6 +190,7 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
+#endif
 
 
 	return 0;

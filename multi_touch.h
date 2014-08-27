@@ -2,6 +2,7 @@
 #define MULTI_TOUCH_H
 
 #include <map>
+#include <stdint.h>
 
 #define MT_OK		0	
 #define MT_ERR_OPEN	-1
@@ -21,12 +22,12 @@ public:
 	MultiTouch();
 	~MultiTouch();
 
-	int open(char* device);
+	int openDevice(char* device);
 	int checkDevice();
 
 protected: // FUNCTIONS
 	void handleABS(const uint32_t& code, const uint32_t& value);
-	void handleSY(const uint32_t& code, const uint32_t& value);
+	void handleSYN(const uint32_t& code, const uint32_t& value);
 
 protected:
 	int m_descriptor;	

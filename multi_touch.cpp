@@ -1,4 +1,9 @@
 #include "multi_touch.h"
+#include <fcntl.h>
+#include <unistd.h>
+#include <linux/input.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 MultiTouch::MultiTouch()
 : m_descriptor(-1)
@@ -9,7 +14,7 @@ MultiTouch::~MultiTouch()
 {
 }
 
-int MultiTouch::open(char* device)
+int MultiTouch::openDevice(char* device)
 {
 	m_descriptor = open(device, O_RDONLY);	
 	if(m_descriptor == -1)
@@ -38,6 +43,7 @@ int MultiTouch::checkDevice()
 			handleABS(ie.code, ie.value);
 			break;
 		default:
+			break;
 	}
 
 	return MT_OK;
@@ -85,50 +91,50 @@ void MultiTouch::handleABS(const uint32_t& code, const uint32_t& value)
 		}
 }
 
-void handleSY(const uint32_t& code, const uint32_t& /*value*/)
+void MultiTouch::handleSYN(const uint32_t& code, const uint32_t& /*value*/)
 {
-		if(code == SYN_REPORT)
+	if(code == SYN_REPORT)
+	{
+		std::map<int, tsPosition>::iterator it;
+		for(it = m_posMap.begin(); it != m_posMap.end(); it++)
 		{
-			std::map<int, tsPosition>::iterator it;
-			for(it = m_posMap.begin(); it != m_posMap.end(); it++)
+			if(it->second.justAdded)
 			{
-				if(it->second.justAdded)
-				{
-					printf("x: %d, y: %d, new: %d\n", it->second.x, it->second.y, it->second.justAdded);
-					it->second.justAdded = false;
+				printf("x: %d, y: %d, new: %d\n", it->second.x, it->second.y, it->second.justAdded);
+				it->second.justAdded = false;
 
-					uint16_t y = it->second.y;
-					if(y >= 0 && y < 4096/3)
-					{
-						printf("on 1\n");
-					}
-					else if(y >= 4096/3 && y < (4096/3)*2)
-					{
-						printf("on 2\n");
-					}
-					else
-					{
-						printf("on 3\n");
-					}
-				}
-				else if(it->second.remove)
+				uint16_t y = it->second.y;
+				if(y >= 0 && y < 4096/3)
 				{
-					printf("finger lifted\n");
-					uint16_t y = it->second.y;
-					if(y >= 0 && y < 4096/3)
-					{
-						printf("off 1\n");
-					}
-					else if(y >= 4096/3 && y < (4096/3)*2)
-					{
-						printf("off 2\n");
-					}
-					else
-					{
-						printf("off 3\n");
-					}
-					m_posMap.erase(it->first);
+					printf("on 1\n");
+				}
+				else if(y >= 4096/3 && y < (4096/3)*2)
+				{
+					printf("on 2\n");
+				}
+				else
+				{
+					printf("on 3\n");
 				}
 			}
+			else if(it->second.remove)
+			{
+				printf("finger lifted\n");
+				uint16_t y = it->second.y;
+				if(y >= 0 && y < 4096/3)
+				{
+					printf("off 1\n");
+				}
+				else if(y >= 4096/3 && y < (4096/3)*2)
+				{
+					printf("off 2\n");
+				}
+				else
+				{
+					printf("off 3\n");
+				}
+				m_posMap.erase(it->first);
+			}
 		}
+	}
 }
