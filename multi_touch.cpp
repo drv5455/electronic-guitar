@@ -100,41 +100,44 @@ void MultiTouch::handleSYN(const uint32_t& code, const uint32_t& /*value*/)
 		{
 			if(it->second.justAdded)
 			{
-				printf("x: %d, y: %d, new: %d\n", it->second.x, it->second.y, it->second.justAdded);
+				//printf("x: %d, y: %d, new: %d\n", it->second.x, it->second.y, it->second.justAdded);
 				it->second.justAdded = false;
-
 				uint16_t y = it->second.y;
-				if(y >= 0 && y < 4096/3)
-				{
-					printf("on 1\n");
-				}
-				else if(y >= 4096/3 && y < (4096/3)*2)
-				{
-					printf("on 2\n");
-				}
-				else
-				{
-					printf("on 3\n");
-				}
+
+				tsMtEvent event;
+				event.type = eeFingerDown;
+				event.region = calcRegion(it->second.x, it->second.y);
+				m_handleEvent(event);
 			}
 			else if(it->second.remove)
 			{
-				printf("finger lifted\n");
 				uint16_t y = it->second.y;
-				if(y >= 0 && y < 4096/3)
-				{
-					printf("off 1\n");
-				}
-				else if(y >= 4096/3 && y < (4096/3)*2)
-				{
-					printf("off 2\n");
-				}
-				else
-				{
-					printf("off 3\n");
-				}
+
+				tsMtEvent event;
+				event.type = eeFingerUp;
+				event.region = calcRegion(it->second.x, it->second.y);
+				m_handleEvent(event);
+
 				m_posMap.erase(it->first);
 			}
 		}
 	}
+}
+
+void MultiTouch::setCallback(void (*handleEvent)(const tsMtEvent& event))
+{
+	m_handleEvent = handleEvent;
+}
+
+teMtRegion MultiTouch::calcRegion(const uint16_t &/*x*/, uint16_t &y)
+{
+	teMtRegion region;
+	if(y >= 0 && y < MT_WIDTH/3)
+		region = eeLeft;
+	else if(y >= MT_WIDTH/3 && y < (MT_WIDTH/3)*2)
+		region = eeMiddle;
+	else
+		region = eeRight;
+
+	return region;
 }

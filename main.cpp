@@ -11,12 +11,21 @@
 #include "multi_touch.h"
 
 static char *port_name = "default";
+void handleEvent(const tsMtEvent &event)
+{
+	char buf[50];
+	eventToString(buf, event.type);
+	printf("Type: %s ", buf);
+	regionToString(buf, event.region);
+	printf("Region: %s\n", buf);
+}
 
 int main(int argc, char* argv[])
 {
 
 	MultiTouch mt;
 	mt.openDevice(argv[1]);
+	mt.setCallback(handleEvent);
 	while(1)
 		mt.checkDevice();
 #if 0
